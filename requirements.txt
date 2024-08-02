@@ -1,0 +1,16 @@
+arch
+keras
+matplotlib
+numpy
+pandas
+pytorch-lightning
+torch
+tensorflow
+tensorflow-rocm
+statsmodels
+talos
+scikit-learn
+python-binance
+optuna
+darts
+sklearn==0.0

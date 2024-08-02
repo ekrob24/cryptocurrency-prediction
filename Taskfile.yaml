@@ -1,0 +1,46 @@
+---
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+vars:
+  # Files
+  PIP_REQUIREMENTS_FILE: "{{.ROOT_DIR}}/requirements.txt"
+  PIP_GPU_REQUIREMENTS_FILE: "{{.ROOT_DIR}}/gpu-requirements.txt"
+  # Binaries
+  PYTHON_BIN: python3
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  VIRTUAL_ENV: "{{.ROOT_DIR}}/.venv"
+  TORCH_USE_HIP_DSA: 1
+  HIP_VISIBLE_DEVICES: 0
+  PYTORCH_ROCM_ARCH: gfx1030
+  HSA_OVERRIDE_GFX_VERSION: 10.3.0
+  PYTORCH_HIP_ALLOC_CONF: "expandable_segments:True"
+
+tasks:
+
+  venv:
+    desc: Set up virtual environment
+    cmds:
+      - "{{.PYTHON_BIN}} -m venv {{.VIRTUAL_ENV}}"
+      - '{{.VIRTUAL_ENV}}/bin/python3 -m pip install --upgrade pip setuptools wheel'
+      - '{{.VIRTUAL_ENV}}/bin/python3 -m pip install --upgrade --requirement "{{.PIP_REQUIREMENTS_FILE}}"'
+      - '{{.VIRTUAL_ENV}}/bin/python3 -m pip install --upgrade --requirement "{{.PIP_GPU_REQUIREMENTS_FILE}}"'
+    sources:
+      - "{{.PIP_REQUIREMENTS_FILE}}"
+      - "{{.PIP_GPU_REQUIREMENTS_FILE}}"
+    generates:
+      - "{{.VIRTUAL_ENV}}/pyvenv.cfg"
+    preconditions:
+      - { msg: "Missing Pip requirements file", sh: "test -f {{.PIP_REQUIREMENTS_FILE}}" }
+      - { msg: "Missing Pip requirements file", sh: "test -f {{.PIP_GPU_REQUIREMENTS_FILE}}" }
+
+  test:
+    desc: Run test python file
+    cmds:
+      - "{{.VIRTUAL_ENV}}/bin/python3 {{.name}}_test.py > {{.name}}.log"
+    requires:
+      vars: ["name"]
+    preconditions:
+      - { msg: "Missing python test file", sh: "test -f {{.name}}_test.py" }

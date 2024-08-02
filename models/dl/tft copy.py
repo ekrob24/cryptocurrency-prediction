@@ -235,7 +235,7 @@ class TFT(ModelInterfaceDL):
             print("ERROR: the model must be available before saving it")
             return
         path = (self.model_path + self.name + str(self.count_save).zfill(4) + '_model.pth.tar')
-        self.model.save(path)
+        self.model.save_model(path)
         self.count_save += 1
      
     def load_model(self):

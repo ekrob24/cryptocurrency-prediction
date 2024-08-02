@@ -1,0 +1,2 @@
+,first_lstm_dim,lstm_activation,first_dropout_rate,second_lstm_dim,first_dense_dim,dense_activation,dense_kernel_init,gru_dim,gru_activation,second_dropout_rate,second_dense_dim,batch_size,epochs,patience,optimizer,lr,momentum,decay
+0,75,relu,0.05,50,32,relu,he_normal,50,relu,0.0,64,256,200,50,adam,0.001,0.9,0.0001

@@ -74,7 +74,7 @@ class LSTM(ModelInterfaceDL):
         ])
 
         if self.p['optimizer'] == 'adam':
-            opt = Adam(learning_rate=self.p['lr'], decay=self.p['decay'])
+            opt = Adam(learning_rate=self.p['lr'])
         elif self.p['optimizer'] == 'rmsprop':
             opt = RMSprop(learning_rate=self.p['lr'])
         elif self.p['optimizer'] == 'nadam':

@@ -168,7 +168,7 @@ class BinanceDataset(DatasetInterface):
         """
 
         df = pd.read_csv(self.data_path + self.data_file)
-        df.date = pd.to_datetime(df.date)
+        df.date = pd.to_datetime(df.date, format="%d/%m/%Y")
         df = df.set_index('date')
         target = self.target_name[0] 
         diff = list()
