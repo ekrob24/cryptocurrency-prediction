@@ -116,31 +116,54 @@ def main():
                 ds.dataset_creation(df=True)
                 ds.dataset_normalization(scaling)
 
-                n_preds = ds.scale_predictions(preds=inversed_preds)
-                n_labels = ds.scale_predictions(preds=labels)
-                
-                mse.append(mean_squared_error(n_labels, n_preds))
-                rmse.append(np.sqrt(mean_squared_error(n_labels, n_preds)))
-                mae.append(mean_absolute_error(n_labels, n_preds))
-                mape.append(mean_absolute_percentage_error(n_labels, n_preds))
-                r2_score.append(r2.r_squared(n_labels, n_preds))
+                try:
+                    # Ensuring correct format for labels and predictions
+                    if not isinstance(labels, np.ndarray):
+                        print(f"labels is not an np.ndarray. Type: {type(labels)}")
+                        labels = np.array(labels)
 
-                print("MSE", mean_squared_error(n_labels, n_preds))
-                print("MAE", mean_absolute_error(n_labels, n_preds))
-                print("MAPE", mean_absolute_percentage_error(n_labels, n_preds))
-                print("RMSE", np.sqrt(mean_squared_error(n_labels, n_preds)))
-                print("R2", r2.r_squared(n_labels, n_preds))
+                    if not isinstance(inversed_preds, np.ndarray):
+                        print(f"inversed_preds is not an np.ndarray. Type: {type(inversed_preds)}")
+                        inversed_preds = np.array(inversed_preds)
 
-                n_experiment_name = experiment_name + '_N'
-                all_predictions.extend(n_preds)
-                all_labels.extend(n_labels)
+                    # Ensure both are 2D arrays
+                    if labels.ndim == 1:
+                        labels = labels.reshape(-1, 1)
+                    if inversed_preds.ndim == 1:
+                        inversed_preds = inversed_preds.reshape(-1, 1)
+
+                    # Calculate the metrics
+                    mse_value = mean_squared_error(labels, inversed_preds)
+                    mae_value = mean_absolute_error(labels, inversed_preds)
+                    mape_value = mean_absolute_percentage_error(labels, inversed_preds)
+                    rmse_value = np.sqrt(mse_value)
+                    r2_value = r2.r_squared(labels, inversed_preds)
+
+                    mse.append(mse_value)
+                    rmse.append(rmse_value)
+                    mae.append(mae_value)
+                    mape.append(mape_value)
+                    r2_score.append(r2_value)
+
+                    print("MSE", mse_value)
+                    print("MAE", mae_value)
+                    print("MAPE", mape_value)
+                    print("RMSE", rmse_value)
+                    print("R2", r2_value)
+                except Exception as e:
+                    print(f"Error in calculating metrics: {e}")
+                    print(f"labels: {labels}")
+                    print(f"inversed_preds: {inversed_preds}")
+
+                all_predictions.extend(inversed_preds)
+                all_labels.extend(labels)
                 train_time.append(model.train_time)
                 inference_time.append(model.inference_time)
 
             if not tuned:
                 save_results.save_params_csv(model.p, model.name)
 
-            save_results.save_output_csv(preds=all_predictions, labels=all_labels, feature=t, filename=n_experiment_name, bivariate=len(ds.target_name) > 1)
+            save_results.save_output_csv(preds=all_predictions, labels=all_labels, feature=t, filename=experiment_name, bivariate=len(ds.target_name) > 1)
             save_results.save_metrics_csv(mses=mse, maes=mae, rmses=rmse, mapes=mape, filename=experiment_name, r2=r2_score)
             inference_name = experiment_name + '-inf_time'
             save_results.save_timing(times=inference_time, filename=inference_name)
