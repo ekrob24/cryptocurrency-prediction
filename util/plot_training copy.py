@@ -1,47 +1,39 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_loss(mse, mae, title):
-    plt.figure(figsize=(10, 6))
-    plt.plot(mse, label='MSE')
-    plt.plot(mae, label='MAE')
-    plt.title('Model Loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Retraining Period')
-    plt.legend(loc='upper right')
-    plt.grid(True)
-    plt.savefig(f"img/loss/loss_{title}.png")
-    plt.close()
 
-def plot_accuracy(r2_scores, title):
+def plot_loss(history, title):
     plt.figure(figsize=(10, 6))
-    plt.plot(r2_scores, label='R2 Score')
-    plt.title('Model Accuracy')
-    plt.ylabel('R2 Score')
-    plt.xlabel('Retraining Period')
-    plt.legend(loc='upper left')
-    plt.grid(True)
-    plt.savefig(f"img/accuracy/accuracy_{title}.png")
-    plt.close()
+    plt.plot(history.__history['loss'])
+    plt.plot(history.__history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig("img/loss/loss_" + title + ".png")
 
-def plot_series(time, series, series2, format="-", start=0, end=None, label1="", label2="", title="output", bivariate=False):
+
+def plot_series(time, series, series2, format="-", start=0, end=None, label1="", label2="", title="output",
+                bivariate=False):
     plt.figure(figsize=(10, 6))
     if bivariate:
-        plt.plot(series[start:end, 0], label=label1 + 'CPU')
-        plt.plot(series2[start:end, 0], 'o', label=label2 + 'CPU')
-        plt.plot(series[start:end, 1], label=label1 + 'MEM')
-        plt.plot(series2[start:end, 1], 'o', label=label2 + 'MEM')
+        plt.plot(series[start:end, 0], label=label1+'CPU')
+        plt.plot(series2[start:end, 0], 'o', label=label2+'CPU')
+        plt.plot(series[start:end, 1], label=label1+'MEM')
+        plt.plot(series2[start:end, 1], 'o', label=label2+'MEM')
     else:
+
         plt.plot(series[start:end], label=label1)
         plt.plot(series2[start:end], 'o', label=label2)
     plt.xlabel("Time")
-    plt.ylabel("Value")
+    plt.ylabel("Resource unit")
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"img/preds/{title}.png")
-    plt.close()
+    plt.savefig("img/preds/" + title + ".png")
 
-def plot_series_interval(time, series, series2, std, format="-", start=0, end=None, label1="", label2="", title="output", bivariate=False):
+
+def plot_series_interval(time, series, series2, std, format="-", start=0, end=None, label1="", label2="",
+                         title="output", bivariate=False):
     plt.figure(figsize=(20, 10))
     if bivariate:
         min_array = np.array(series2) - 2 * np.array(std)
@@ -54,6 +46,7 @@ def plot_series_interval(time, series, series2, std, format="-", start=0, end=No
         plt.plot(series2[start:end, 1], 'o', label=label2 + 'MEM')
         plt.fill_between(np.arange(len(series2)), min_array[start:end, 0], max_array[start:end, 0], alpha=0.2)
         plt.fill_between(np.arange(len(series2)), min_array[start:end, 1], max_array[start:end, 1], alpha=0.2)
+
     else:
         series = np.array(series).reshape(-1, 1)
         series2 = np.array(series2).reshape(-1, 1)
@@ -64,15 +57,17 @@ def plot_series_interval(time, series, series2, std, format="-", start=0, end=No
         max_array = np.squeeze(max_array)
         plt.plot(series[start:end], label=label1)
         plt.plot(series2[start:end], 'o', label=label2)
+
         plt.fill_between(np.arange(series2.shape[0]), min_array, max_array, alpha=0.2)
     plt.xlabel("Time")
-    plt.ylabel("Value")
+    plt.ylabel("Resource unit")
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"img/preds/{title}.png")
-    plt.close()
+    plt.savefig("img/preds/" + title + ".png")
 
-def plot_bayes_series(time, series, series2, min, max, format="-", start=0, end=None, label1="", label2="", title="output"):
+
+def plot_bayes_series(time, series, series2, min, max, format="-", start=0, end=None, label1="", label2="",
+                      title="output"):
     plt.figure(figsize=(20, 10))
     plt.plot(series[start:end], label=label1)
     plt.plot(series2[start:end], 'o', label=label2)
@@ -81,5 +76,4 @@ def plot_bayes_series(time, series, series2, min, max, format="-", start=0, end=
     plt.ylabel("Value")
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"img/preds/{title}.png")
-    plt.close()
+    plt.savefig("img/preds/" + title + ".png")

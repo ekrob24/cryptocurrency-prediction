@@ -1,15 +1,8 @@
 from models.stats.arima import STATS_ARIMA
 from util import plot_training, save_results, dataset_binance, r2
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, median_absolute_error, explained_variance_score, mean_squared_log_error
 import numpy as np
 import pandas as pd
-import time
-import psutil
-import os
-
-def ensure_dir_exists(dir_path):
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
 
 def main():
     h = 0
@@ -20,9 +13,6 @@ def main():
     scaling = ['minmax']
     tuned = 0
     window = 30
-
-    # List to store all information
-    results_list = []
 
     for t in targets:
         for c in cryptos:
@@ -74,20 +64,9 @@ def main():
                 ds.dataset_creation(df=True, detrended=True)
                 ds.dataset_normalization(scaling)
                 ds.data_summary()
-                
-                # Start time and resource monitoring
-                start_time = time.time()
-                process = psutil.Process()
-                cpu_start = process.cpu_percent(interval=None)
-                memory_start = process.memory_info().rss
-                
-                yhat, prediction_std, train_model = model.training(p=p, X_test=ds.X_test_array[:output])
-                
-                # End time and resource monitoring
-                end_time = time.time()
-                cpu_end = process.cpu_percent(interval=None)
-                memory_end = process.memory_info().rss
-                
+                to_predict = ds.X_test_array[:output]
+                yhat, prediction_std, train_model = model.training(p=p, X_test=to_predict)
+
                 if p['horizon'] > 0:
                     yhat = yhat[:-p['horizon']]
                 preds = np.array(yhat).reshape(-1, 1)
@@ -104,54 +83,22 @@ def main():
                 n_preds = ds.scale_predictions(preds=inversed_preds)
                 n_labels = ds.scale_predictions(preds=labels)
 
-                mse_value = mean_squared_error(n_labels, n_preds)
-                rmse_value = np.sqrt(mean_squared_error(n_labels, n_preds))
-                mae_value = mean_absolute_error(n_labels, n_preds)
-                mape_value = mean_absolute_percentage_error(n_labels, n_preds)
-                r2_value = r2.r_squared(n_labels, n_preds)
-                
-                mse.append(mse_value)
-                rmse.append(rmse_value)
-                mae.append(mae_value)
-                mape.append(mape_value)
-                r2_score.append(r2_value)
+                mse.append(mean_squared_error(n_labels, n_preds))
+                rmse.append(np.sqrt(mean_squared_error(n_labels, n_preds)))
+                mae.append(mean_absolute_error(n_labels, n_preds))
+                mape.append(mean_absolute_percentage_error(n_labels, n_preds))
+                r2_score.append(r2.r_squared(n_labels, n_preds))
 
-                print("MSE", mse_value)
-                print("MAE", mae_value)
-                print("MAPE", mape_value)
-                print("RMSE", rmse_value)
-                print("R2", r2_value)
-                
-                # Calculate timing and resource usage information
-                duration = end_time - start_time
-                cpu_usage = cpu_end - cpu_start
-                memory_usage = (memory_end - memory_start) / (1024 * 1024)  # Convert to MB
-                
-                # Save information to list
-                results_list.append({
-                    'Experiment': experiment_name,
-                    'Crypto': c,
-                    'Target': t,
-                    'Training Time (s)': duration,
-                    'CPU Usage (%)': cpu_usage,
-                    'Memory Usage (MB)': memory_usage,
-                    'Parameters': p,
-                    'MSE': mse_value,
-                    'MAE': mae_value,
-                    'MAPE': mape_value,
-                    'RMSE': rmse_value,
-                    'R2': r2_value
-                })
+                print("MSE", mean_squared_error(n_labels, n_preds))
+                print("MAE", mean_absolute_error(n_labels, n_preds))
+                print("MAPE", mean_absolute_percentage_error(n_labels, n_preds))
+                print("RMSE", np.sqrt(mean_squared_error(n_labels, n_preds)))
+                print("R2", r2.r_squared(n_labels, n_preds))
                 
                 n_experiment_name = experiment_name + '_N'
                 all_predictions.extend(n_preds)
                 all_labels.extend(n_labels)
 
-                # Ensure directories exist before saving plots
-                ensure_dir_exists("img/loss")
-                ensure_dir_exists("img/accuracy")
-                ensure_dir_exists("img/preds")
-                
                 # Plot predicted vs actual series
                 plot_training.plot_series(np.arange(len(n_labels)), n_labels, n_preds, label1='Actual', label2='Predicted', title=experiment_name)
 
@@ -164,10 +111,6 @@ def main():
                
             save_results.save_output_csv(preds=all_predictions, labels=all_labels, feature=t, filename=n_experiment_name, bivariate=len(ds.target_name) > 1)
             save_results.save_metrics_csv(mses=mse, maes=mae, rmses=rmse, mapes=mape, filename=experiment_name, r2=r2_score)
-    
-    # Convert results list to DataFrame and save to CSV
-    results_df = pd.DataFrame(results_list)
-    results_df.to_csv('training_resources_and_metrics.csv', index=False)
 
 if __name__ == "__main__":
     main()

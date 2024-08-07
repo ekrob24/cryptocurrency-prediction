@@ -56,15 +56,16 @@ def hyperparameter_test(model_name, cryptos, targets):
                 model = TFT(experiment_name)
                 model.parameter_list = {
                                         "input_chunk_length":[30], 
-                                        "hidden_size":[32, 64, 128], 
-                                        "lstm_layers":[2, 3, 4, 5], 
+                                        "hidden_layer_dim":[32, 64, 128], 
+                                        "num_lstm_layers":[2, 3, 4, 5], 
                                         "num_attention_heads":[2, 3, 5, 7], 
-                                        "dropout":[0.0, 0.05, 0.1], 
+                                        "dropout_rate":[0.0, 0.05, 0.1], 
                                         "batch_size":[256], 
                                         'output_chunk_length': [1],
-                                        "n_epochs":[1000],
+                                        "epochs":[1000],
                                         "lr": [1e-3, 1e-4, 1e-5],
-                                        'optimizer': ['adam'],          
+                                        'optimizer': ['adam'],
+                                        'feed_forward': ['GLU', 'Bilinear', 'ReGLU', 'GEGLU', 'SwiGLU', 'ReLU', 'GELU', 'GatedResidualNetwork'],          
                                         }
             elif model_name =='HYBRID':
                         model =LSTM_GRU(experiment_name)
